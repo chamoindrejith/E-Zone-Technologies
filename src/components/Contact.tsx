@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Phone, Mail, Globe, Clock, MapPin, MessageCircle } from "lucide-react";
+import { Phone, Mail, Globe, Clock, MapPin } from "lucide-react";
 
 const Contact = () => {
   return (
@@ -33,8 +33,10 @@ const Contact = () => {
           >
             {[
               { icon: Phone, label: "Hotline", value: "071 871 1111" },
-              { icon: MessageCircle, label: "WhatsApp", value: "071 781 1111" },
-              { icon: Mail, label: "Email", value: "info@ezonetech.lk" },
+              { icon: Phone, label: "Technologies", value: "071 781 1111 / 071 381 1111 1" },
+              { icon: Phone, label: "Repair Center", value: "071 071 7777" },
+              { icon: Phone, label: "IT Solutions", value: "071 871 1100" },
+              { icon: Mail, label: "Email", value: "ezonetechnologies01@gmail.com" },
               { icon: Globe, label: "Website", value: "www.ezonetech.lk" },
               { icon: MapPin, label: "Location", value: "Anuradhapura, Sri Lanka" },
               { icon: Clock, label: "Hours", value: "Mon–Sat: 8:30 AM – 6:00 PM" },
