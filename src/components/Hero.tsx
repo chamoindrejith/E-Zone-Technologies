@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Monitor, Wrench, Code, GraduationCap, Shield } from "lucide-react";
+import { Monitor, Wrench, Code, GraduationCap } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
+import redragonLogo from "@/assets/redragon-logo.png";
 
 const divisions = [
   { label: "E-Zone Technologies", icon: Monitor, path: "/technologies", color: "from-primary to-accent" },
@@ -47,8 +48,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.15 }}
             className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-4"
           >
-            E-Zone <span className="text-gradient">Technologies</span>
-            <br />
+            E-Zone <span className="text-gradient">Technologies</span>{" "}
             <span className="text-2xl sm:text-3xl md:text-4xl text-muted-foreground font-medium">(Pvt) Ltd</span>
           </motion.h1>
 
@@ -68,8 +68,8 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="mb-10"
           >
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-card border border-glow shadow-glow-sm">
-              <Shield size={18} className="text-accent" />
+            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-card border border-glow shadow-glow-sm">
+              <img src={redragonLogo} alt="Redragon" className="h-8 w-auto" />
               <span className="text-sm font-semibold text-foreground">
                 Redragon <span className="text-gradient">Authorized Dealer</span>
               </span>

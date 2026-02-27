@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, ShoppingCart, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -132,6 +132,7 @@ const dummyProducts: Product[] = [
 const categories = ["All", ...Array.from(new Set(dummyProducts.map((p) => p.category)))];
 
 const Technologies = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -207,7 +208,7 @@ const Technologies = () => {
                       To redirect to product detail from API:
                       onClick={() => window.open(`https://your-api.com/product/${product.id}`, '_blank')}
                     */}
-                    <button className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-accent transition-colors">
+                    <button onClick={() => navigate(`/technologies/${product.id}`)} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-accent transition-colors">
                       <ShoppingCart size={14} /> View Details
                     </button>
                   </div>
