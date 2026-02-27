@@ -1,25 +1,28 @@
 import { motion } from "framer-motion";
-import { Code, Wrench, ShoppingCart, Check } from "lucide-react";
+import { Code, Wrench, ShoppingCart, GraduationCap, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const divisions = [
   {
-    icon: Code,
-    title: "E-Zone IT Solutions",
-    subtitle: "Smart Software for Smart Businesses",
+    icon: ShoppingCart,
+    title: "E-Zone Technologies",
+    subtitle: "Complete IT Hardware & Technology Supply",
+    path: "/technologies",
     services: [
-      "Custom Software Development",
-      "POS Systems",
-      "Institute Management Systems",
-      "HR & Payroll Systems",
-      "Web Application Development",
-      "API Development & Integration",
+      "Laptops & Desktops",
+      "Printers & Scanners",
+      "CCTV & Security Systems",
+      "Networking Equipment",
+      "Computer Accessories",
+      "UPS & Power Backup Solutions",
     ],
-    highlights: ["Secure", "Scalable", "User-Friendly", "Business-Oriented"],
+    highlights: ["Genuine Products", "Warranty Support", "Competitive Pricing"],
   },
   {
     icon: Wrench,
     title: "E-Zone Repair Center",
     subtitle: "Professional Hardware & Electronic Repair",
+    path: "/repair-center",
     services: [
       "Laptop Repair (Chip-level)",
       "Desktop & Motherboard Repair",
@@ -31,22 +34,40 @@ const divisions = [
     highlights: ["Professional Tools", "Industry-Standard", "Expert Technicians"],
   },
   {
-    icon: ShoppingCart,
-    title: "E-Zone Technologies",
-    subtitle: "Complete IT Hardware & Technology Supply",
+    icon: Code,
+    title: "E-Zone IT Solutions",
+    subtitle: "Smart Software for Smart Businesses",
+    path: "/it-solutions",
     services: [
-      "Laptops & Desktops",
-      "Printers & Scanners",
-      "CCTV & Security Systems",
-      "Networking Equipment",
-      "Computer Accessories",
-      "UPS & Power Backup Solutions",
+      "Custom Software Development",
+      "POS Systems",
+      "Institute Management Systems",
+      "HR & Payroll Systems",
+      "Web Application Development",
+      "API Development & Integration",
     ],
-    highlights: ["Genuine Products", "Warranty Support", "Competitive Pricing"],
+    highlights: ["Secure", "Scalable", "User-Friendly", "Business-Oriented"],
+  },
+  {
+    icon: GraduationCap,
+    title: "E-Zone IT Academy",
+    subtitle: "Building Tomorrow's Tech Leaders",
+    path: "/it-academy",
+    services: [
+      "Full-Stack Web Development",
+      "Hardware & Networking",
+      "Graphic Design & UI/UX",
+      "Microsoft Office Suite",
+      "Cybersecurity Fundamentals",
+      "Industry Certification Prep",
+    ],
+    highlights: ["Hands-on Training", "Expert Instructors", "Job-Ready Skills"],
   },
 ];
 
 const Divisions = () => {
+  const navigate = useNavigate();
+
   return (
     <section id="services" className="py-24 relative">
       <div className="absolute inset-0 bg-gradient-dark" />
@@ -60,22 +81,23 @@ const Divisions = () => {
         >
           <span className="text-xs font-mono text-primary tracking-widest uppercase">Our Divisions</span>
           <h2 className="text-3xl md:text-5xl font-bold mt-3 mb-4">
-            Three Pillars of <span className="text-gradient">Excellence</span>
+            Four Pillars of <span className="text-gradient">Excellence</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Software, hardware, and repair — everything your business needs, under one brand.
+            Software, hardware, repair, and education — everything your business needs, under one brand.
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
           {divisions.map((div, i) => (
             <motion.div
               key={div.title}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.15 }}
-              className="group p-8 rounded-2xl bg-card border border-glow hover:shadow-glow transition-all duration-500"
+              transition={{ duration: 0.6, delay: i * 0.1 }}
+              className="group p-8 rounded-2xl bg-card border border-glow hover:shadow-glow transition-all duration-500 cursor-pointer"
+              onClick={() => navigate(div.path)}
             >
               <div className="w-14 h-14 rounded-xl bg-gradient-brand flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <div.icon size={24} className="text-primary-foreground" />
