@@ -3,6 +3,7 @@ import { ArrowLeft, ExternalLink, Code, Globe, Database, Smartphone } from "luci
 import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Projects from "@/components/Projects";
 
 const services = [
   { icon: Code, title: "Custom Software Development", desc: "Tailored software solutions to streamline your business operations." },
@@ -60,8 +61,12 @@ const ITSolutions = () => {
                 <h3 className="text-lg font-bold text-foreground mb-2">{service.title}</h3>
                 <p className="text-sm text-muted-foreground">{service.desc}</p>
               </motion.div>
+
+              
+
             ))}
           </div>
+          <Projects/>
         </div>
       </section>
       <Footer />

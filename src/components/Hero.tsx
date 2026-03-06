@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Monitor, Wrench, Code, GraduationCap } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
@@ -11,16 +12,59 @@ const divisions = [
   { label: "E-Zone IT Academy", icon: GraduationCap, path: "/it-academy", color: "from-primary to-accent" },
 ];
 
+const smokeLayers = [
+  { size: 280, xOffset: -130, yOffset: -130, className: "bg-primary/20", duration: 0.35 },
+  { size: 240, xOffset: -80, yOffset: -90, className: "bg-accent/15", duration: 0.45 },
+  { size: 200, xOffset: -30, yOffset: -45, className: "bg-primary/15", duration: 0.55 },
+];
+
 const Hero = () => {
   const navigate = useNavigate();
+  const [cursor, setCursor] = useState({ x: 0, y: 0, active: false });
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLElement>) => {
+    const { left, top } = event.currentTarget.getBoundingClientRect();
+    setCursor({
+      x: event.clientX - left,
+      y: event.clientY - top,
+      active: true,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setCursor((prev) => ({ ...prev, active: false }));
+  };
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
+    <section
+      id="home"
+      className="relative min-h-screen flex items-center overflow-hidden"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
       {/* Background */}
       <div className="absolute inset-0">
         <img src={heroBg} alt="" className="w-full h-full object-cover opacity-30" />
         <div className="absolute inset-0 bg-gradient-dark opacity-80" />
         <div className="absolute inset-0 grid-pattern opacity-30" />
+      </div>
+
+      {/* Cursor smoke */}
+      <div className="absolute inset-0 pointer-events-none z-[5]">
+        {smokeLayers.map((layer, index) => (
+          <motion.div
+            key={layer.size}
+            className={`absolute rounded-full blur-[120px] ${layer.className}`}
+            style={{ width: layer.size, height: layer.size }}
+            animate={{
+              x: cursor.x + layer.xOffset,
+              y: cursor.y + layer.yOffset,
+              opacity: cursor.active ? 0.8 - index * 0.2 : 0,
+              scale: cursor.active ? 1 : 0.75,
+            }}
+            transition={{ duration: layer.duration, ease: "easeOut" }}
+          />
+        ))}
       </div>
 
       {/* Floating orbs */}
@@ -69,10 +113,12 @@ const Hero = () => {
             className="mb-10"
           >
             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-card border border-glow shadow-glow-sm">
+              <a href="https://www.redragon.lk/store-locator-redragon/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
               <img src={redragonLogo} alt="Redragon" className="h-8 w-auto" />
               <span className="text-sm font-semibold text-foreground">
                 Redragon <span className="text-gradient">Authorized Dealer</span>
               </span>
+              </a>
             </div>
           </motion.div>
 

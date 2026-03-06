@@ -12,7 +12,7 @@ const reasons = [
 
 const WhyChooseUs = () => {
   return (
-    <section className="py-24 relative">
+    <section id="why-choose-us" className="py-24 relative">
       <div className="absolute inset-0 bg-gradient-dark" />
       <div className="container mx-auto px-6 relative z-10">
         <motion.div
