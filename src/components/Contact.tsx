@@ -33,11 +33,11 @@ const Contact = () => {
           >
             {[
               { icon: Phone, label: "Hotline", value: "071 871 1111" },
-              { icon: Phone, label: "Technologies", value: "071 781 1111 / 071 381 1111 1" },
-              { icon: Phone, label: "Repair Center", value: "071 071 7777" },
-              { icon: Phone, label: "IT Solutions", value: "071 871 1100" },
+              { icon: Phone, label: "E Zone Technologies", value: "071 781 1111 / 071 381 1111 1" },
+              { icon: Phone, label: "E Zone Repair Center", value: "071 071 7777" },
+              { icon: Phone, label: "E Zone IT Solutions", value: "071 871 1100" },
               { icon: Mail, label: "Email", value: "ezonetechnologies01@gmail.com" },
-              { icon: Globe, label: "Website", value: "www.ezonetech.lk" },
+              { icon: Globe, label: "Website", value: "www.ezonetechnologies.lk" },
               { icon: MapPin, label: "Location", value: "Anuradhapura, Sri Lanka" },
               { icon: Clock, label: "Hours", value: "Mon–Sat: 8:30 AM – 6:00 PM" },
             ].map((item) => (

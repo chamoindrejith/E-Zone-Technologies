@@ -4,7 +4,7 @@ import { Layers, Users, MapPin, TrendingUp, DollarSign, Headphones } from "lucid
 const reasons = [
   { icon: Layers, title: "One-Stop Solution", desc: "Software + Hardware + Repair under one brand" },
   { icon: Users, title: "Experienced Team", desc: "Skilled technicians and developers" },
-  { icon: MapPin, title: "Local Support", desc: "Based in Anuradhapura, always accessible" },
+  { icon: MapPin, title: "Local Support", desc: "Based in Sri Lanka, always accessible" },
   { icon: TrendingUp, title: "Digital Transformation", desc: "Business-focused technology adoption" },
   { icon: DollarSign, title: "Transparent Pricing", desc: "No hidden costs, fair and competitive" },
   { icon: Headphones, title: "After-Sales Service", desc: "Continuous support and maintenance" },
@@ -22,7 +22,7 @@ const WhyChooseUs = () => {
           transition={{ duration: 0.7 }}
           className="text-center mb-16"
         >
-          <span className="text-xs font-mono text-primary tracking-widest uppercase">Why E-Zone</span>
+          <span className="text-xs font-mono text-primary tracking-widest uppercase">Why E Zone</span>
           <h2 className="text-3xl md:text-5xl font-bold mt-3 mb-4">
             Why Choose <span className="text-gradient">Us</span>
           </h2>

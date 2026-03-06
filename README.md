@@ -1,10 +1,10 @@
-# E-Zone Technologies (Pvt) Ltd
+# E Zone Technologies (Pvt) Ltd
 
-Official website and portfolio for E-Zone Technologies, a leading IT solutions provider in Anuradhapura, Sri Lanka.
+Official website and portfolio for E Zone Technologies, a leading IT solutions provider in Anuradhapura, Sri Lanka.
 
 ## About
 
-E-Zone Technologies provides comprehensive IT solutions including:
+E Zone Technologies provides comprehensive IT solutions including:
 - Custom software development
 - Hardware supply and sales
 - Professional repair services
@@ -33,7 +33,7 @@ This project is built with:
 git clone <YOUR_GIT_URL>
 
 # Navigate to the project directory
-cd E-Zone-Technologies
+cd E Zone-Technologies
 
 # Install dependencies
 npm i
@@ -56,4 +56,4 @@ npm run preview
 
 ## License
 
-© 2026 E-Zone Technologies (Pvt) Ltd. All rights reserved.
+© 2026 E Zone Technologies (Pvt) Ltd. All rights reserved.

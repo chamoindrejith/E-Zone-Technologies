@@ -7,10 +7,10 @@ import Footer from "@/components/Footer";
 const courses = [
   "Computer Hardware & Networking",
   "Software Development Fundamentals",
-  "Web Development (Full Stack)",
+  "Web Development",
   "Graphic Design & Multimedia",
   "Microsoft Office Suite",
-  "Cybersecurity Essentials",
+  "Arduino & IoT Projects",
 ];
 
 const ITAcademy = () => {
@@ -30,7 +30,7 @@ const ITAcademy = () => {
             className="mb-12"
           >
             <h1 className="text-3xl md:text-5xl font-bold mb-3">
-              E-Zone <span className="text-gradient">IT Academy</span>
+              E Zone <span className="text-gradient">IT Academy</span>
             </h1>
             <p className="text-muted-foreground max-w-2xl">
               Empowering the next generation of IT professionals with hands-on training and industry-relevant courses.
@@ -45,10 +45,9 @@ const ITAcademy = () => {
             className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
           >
             {[
-              { icon: GraduationCap, label: "Students Trained", value: "500+" },
-              { icon: BookOpen, label: "Courses Offered", value: "10+" },
-              { icon: Users, label: "Expert Instructors", value: "8+" },
-              { icon: Award, label: "Certifications", value: "NVQ" },
+              { icon: GraduationCap, label: "Students Trained", value: "100+" },
+              { icon: BookOpen, label: "Courses Offered", value: "6+" },
+              { icon: Users, label: "Expert Instructors", value: "4+" }
             ].map((stat) => (
               <div key={stat.label} className="p-5 rounded-xl bg-card border border-glow text-center">
                 <stat.icon size={24} className="text-primary mx-auto mb-2" />

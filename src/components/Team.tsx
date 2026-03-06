@@ -1,20 +1,19 @@
 import { motion } from "framer-motion";
 
-import executiveDirector from "@/assets/team/executive director.png";
-import managerBusinessDevelopment from "@/assets/team/Manager - Buisness Development.jpeg";
-import traineeAccountant from "@/assets/team/Trainee Accountant.jpeg";
-import seniorDeveloper from "@/assets/team/Senior Full Stack Developer IT Solutions.png";
-import projectManager from "@/assets/team/Project Manager - IT Solutions.jpeg";
-import salesExec1 from "@/assets/team/Sales Executive.jpeg";
-import salesExec2 from "@/assets/team/Sales Executive 2.jpeg";
-import coordinator from "@/assets/team/Coordinator Repair Center.jpg";
-import technician1 from "@/assets/team/Technician Repair Center.jpeg";
-import technician2 from "@/assets/team/Technician Repair Center 2.jpeg";
-import technician3 from "@/assets/team/Technician Repair Center.jpg";
+import executiveDirector from "@/assets/team/Director.png";
+import managerBusinessDevelopment from "@/assets/team/Business Development Manager.png";
+import traineeAccountant from "@/assets/team/Trainee Accountant.png";
+import seniorDeveloper from "@/assets/team/Developer.png";
+import projectManager from "@/assets/team/Project Manager.png";
+import salesExec1 from "@/assets/team/Sales Executive 2.png";
+import salesExec2 from "@/assets/team/Sales Executive.png";
+import coordinator from "@/assets/team/Coordinator.png";
+import technician1 from "@/assets/team/Technician.png";
+import technician2 from "@/assets/team/Technician 2.png";
+import technician3 from "@/assets/team/Technicina 3.png";
 
 
 interface TeamMember {
-  name: string;
   role: string;
   image: string;
 }
@@ -28,41 +27,41 @@ const teamGroups: TeamGroup[] = [
   {
     department: "Executive Leadership",
     members: [
-      { name: "Milinda Rathnayake", role: "Executive Director", image: executiveDirector },
+      { role: "Executive Director", image: executiveDirector },
     ],
   },
   {
     department: "Management",
     members: [
-      { name: "Dulaj Nawarathne", role:  "Manager - Business Development", image: managerBusinessDevelopment },
-      { name: "Mewni Upuldeniya", role: "Trainee Accountant", image: traineeAccountant },
+      { role:  "Manager - Business Development", image: managerBusinessDevelopment },
+      { role: "Trainee Accountant", image: traineeAccountant },
     ],
   },
   {
-    department: "E-Zone IT Solutions",
+    department: "E Zone IT Solutions",
     members: [
-      { name: "Maleesha Aththanayake", role: "Senior Full Stack Developer", image: seniorDeveloper },
-      { name: "Chamodi Indrejith", role: "Project Manager", image: projectManager },
+      { role: "Senior Full Stack Developer", image: seniorDeveloper },
+      { role: "Project Manager", image: projectManager },
     ],
   },
   {
-    department: "E-Zone Technologies",
+    department: "E Zone Technologies",
     members: [
-      { name: "Ishara Malinda", role: "Sales Executive", image: salesExec1 },
-      { name: "Prabhash Dananjaya", role: "Sales Executive", image: salesExec2 },
+      { role: "Sales Executive", image: salesExec1 },
+      { role: "Sales Executive", image: salesExec2 },
     ],
   },
   {
-    department: "E-Zone Repair Center",
+    department: "E Zone Repair Center",
     members: [
-      { name: "Nuwan Sajith", role: "Technical Coordinator", image: coordinator },
-      { name: "Pattrishiya Thamari", role: "Technician", image: technician1 },
-      { name: "Hasitha Viduranga", role: "Technician", image: technician2 },
-      { name: "Heshan Chamidu", role: "Technician", image: technician3 },
+      { role: "Technical Coordinator", image: coordinator },
+      { role: "Technician", image: technician1 },
+      { role: "Technician", image: technician2 },
+      { role: "Technician", image: technician3 },
     ],
   },
   // {
-  //   department: "E-Zone IT Academy",
+  //   department: "E Zone IT Academy",
   //   members: [
   //     { name: "Nimasha Rathnayake", role: "Lead Instructor", image: academyTeam1 },
   //   ],
@@ -86,7 +85,7 @@ const Team = () => {
             Meet Our <span className="text-gradient">Team</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            The talented people behind E-Zone's success — passionate about technology and dedicated to excellence.
+            The talented people behind E Zone's success — passionate about technology and dedicated to excellence.
           </p>
         </motion.div>
 
@@ -103,7 +102,7 @@ const Team = () => {
               <div className="flex flex-wrap justify-center gap-8">
                 {group.members.map((member, mi) => (
                   <motion.div
-                    key={member.name}
+                    
                     initial={{ opacity: 0, scale: 0.9 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
@@ -113,12 +112,12 @@ const Team = () => {
                     <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-glow mb-4 group-hover:border-primary transition-colors duration-300">
                       <img
                         src={member.image}
-                        alt={member.name}
+                        alt={member.role}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         loading="lazy"
                       />
                     </div>
-                    <h4 className="font-semibold text-foreground">{member.name}</h4>
+                    
                     <p className="text-sm text-muted-foreground">{member.role}</p>
                   </motion.div>
                 ))}

@@ -32,7 +32,7 @@ const RepairCenter = () => {
             className="mb-12"
           >
             <h1 className="text-3xl md:text-5xl font-bold mb-3">
-              E-Zone <span className="text-gradient">Repair Center</span>
+              E Zone <span className="text-gradient">Repair Center</span>
             </h1>
             <p className="text-muted-foreground max-w-2xl">
               Professional hardware and electronic repair services with expert technicians and industry-standard tools.

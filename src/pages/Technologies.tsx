@@ -149,7 +149,7 @@ const Technologies = () => {
             className="mb-12"
           >
             <h1 className="text-3xl md:text-5xl font-bold mb-3">
-              E-Zone <span className="text-gradient">Technologies</span>
+              E Zone <span className="text-gradient">Technologies</span>
             </h1>
             <p className="text-muted-foreground max-w-2xl">
               Complete IT hardware and technology supply — laptops, printers, CCTV, networking, and more.

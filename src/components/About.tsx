@@ -18,7 +18,7 @@ const About = () => {
             Who We <span className="text-gradient">Are</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            E-Zone Technologies (Pvt) Ltd is built on a simple vision — to deliver complete
+            E Zone Technologies (Pvt) Ltd is built on a simple vision — to deliver complete
             technology solutions under one roof. From software systems to hardware supply and
             advanced repair services, we provide end-to-end IT solutions tailored for Sri Lankan businesses.
           </p>

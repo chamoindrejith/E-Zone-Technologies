@@ -6,10 +6,10 @@ import heroBg from "@/assets/hero-bg.jpg";
 import redragonLogo from "@/assets/redragon-logo.png";
 
 const divisions = [
-  { label: "E-Zone Technologies", icon: Monitor, path: "/technologies", color: "from-primary to-accent" },
-  { label: "E-Zone Repair Center", icon: Wrench, path: "/repair-center", color: "from-primary to-accent" },
-  { label: "E-Zone IT Solutions", icon: Code, path: "/it-solutions", color: "from-primary to-accent" },
-  { label: "E-Zone IT Academy", icon: GraduationCap, path: "/it-academy", color: "from-primary to-accent" },
+  { label: "E Zone Technologies", icon: Monitor, path: "/technologies", color: "from-primary to-accent" },
+  { label: "E Zone Repair Center", icon: Wrench, path: "/repair-center", color: "from-primary to-accent" },
+  { label: "E Zone IT Solutions", icon: Code, path: "/it-solutions", color: "from-primary to-accent" },
+  { label: "E Zone IT Academy", icon: GraduationCap, path: "/it-academy", color: "from-primary to-accent" },
 ];
 
 const smokeLayers = [
@@ -33,6 +33,13 @@ const Hero = () => {
 
   const handleMouseLeave = () => {
     setCursor((prev) => ({ ...prev, active: false }));
+  };
+
+  const handleContactClick = () => {
+    const contactSection = document.getElementById("contact");
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   return (
@@ -92,7 +99,7 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.15 }}
             className="text-4xl sm:text-5xl md:text-7xl font-bold leading-tight mb-4"
           >
-            E-Zone <span className="text-gradient">Technologies</span>{" "}
+            E Zone <span className="text-gradient">Technologies</span>{" "}
             <span className="text-2xl sm:text-3xl md:text-4xl text-muted-foreground font-medium">(Pvt) Ltd</span>
           </motion.h1>
 
@@ -155,12 +162,12 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.9 }}
             className="flex flex-wrap gap-4"
           >
-            <a
-              href="#contact"
+            <button
+              onClick={handleContactClick}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-gradient-brand text-primary-foreground font-semibold hover:opacity-90 transition-opacity shadow-glow"
             >
               Contact Us
-            </a>
+            </button>
           </motion.div>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 const divisions = [
   {
     icon: ShoppingCart,
-    title: "E-Zone Technologies",
+    title: "E Zone Technologies",
     subtitle: "Complete IT Hardware & Technology Supply",
     path: "/technologies",
     services: [
@@ -20,7 +20,7 @@ const divisions = [
   },
   {
     icon: Wrench,
-    title: "E-Zone Repair Center",
+    title: "E Zone Repair Center",
     subtitle: "Professional Hardware & Electronic Repair",
     path: "/repair-center",
     services: [
@@ -35,7 +35,7 @@ const divisions = [
   },
   {
     icon: Code,
-    title: "E-Zone IT Solutions",
+    title: "E Zone IT Solutions",
     subtitle: "Smart Software for Smart Businesses",
     path: "/it-solutions",
     services: [
@@ -50,7 +50,7 @@ const divisions = [
   },
   {
     icon: GraduationCap,
-    title: "E-Zone IT Academy",
+    title: "E Zone IT Academy",
     subtitle: "Building Tomorrow's Tech Leaders",
     path: "/it-academy",
     services: [

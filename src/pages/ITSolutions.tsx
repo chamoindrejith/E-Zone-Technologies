@@ -29,7 +29,7 @@ const ITSolutions = () => {
             className="mb-8"
           >
             <h1 className="text-3xl md:text-5xl font-bold mb-3">
-              E-Zone <span className="text-gradient">IT Solutions</span>
+              E Zone <span className="text-gradient">IT Solutions</span>
             </h1>
             <p className="text-muted-foreground max-w-2xl mb-6">
               Smart software for smart businesses. We build secure, scalable, and user-friendly solutions.
