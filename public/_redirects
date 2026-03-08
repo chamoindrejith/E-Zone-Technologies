@@ -1,0 +1,2 @@
+# Netlify serverless function redirect
+/api/products  /.netlify/functions/products  200

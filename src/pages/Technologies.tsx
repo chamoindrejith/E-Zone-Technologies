@@ -1,138 +1,108 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Loader2, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { fetchCategories, fetchProducts, type Product, type ProductCategory } from "@/lib/api";
 
-// =====================================================
-// DUMMY PRODUCTS - Replace with API integration
-// 
-// To connect with a real API:
-// 1. Install a data fetching library (already have @tanstack/react-query)
-// 2. Replace the `dummyProducts` array with an API call:
-//
-//    import { useQuery } from "@tanstack/react-query";
-//
-//    const { data: products, isLoading } = useQuery({
-//      queryKey: ["products"],
-//      queryFn: async () => {
-//        const res = await fetch("https://your-api.com/api/products");
-//        return res.json();
-//      },
-//    });
-//
-// 3. Each product from the API should have:
-//    - id: string
-//    - name: string
-//    - quantity: number
-//    - price: number
-//    - weight: string
-//    - category: string
-//    - images: string[] (array of image URLs)
-//    - description: string
-//
-// 4. For product detail page, navigate to /technologies/:id
-//    and fetch: GET https://your-api.com/api/products/:id
-// =====================================================
+const PAGE_SIZE = 24;
 
-interface Product {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-  weight: string;
-  category: string;
-  images: string[];
-  description: string;
-}
+const sortProductsByStock = (items: Product[]) => {
+  return [...items].sort((a, b) => {
+    const aInStock = (a.variations?.[0]?.total_stock || 0) > 0 ? 1 : 0;
+    const bInStock = (b.variations?.[0]?.total_stock || 0) > 0 ? 1 : 0;
 
-const dummyProducts: Product[] = [
-  {
-    id: "1",
-    name: "Redragon K552 Mechanical Keyboard",
-    quantity: 25,
-    price: 12500,
-    weight: "850g",
-    category: "Peripherals",
-    images: ["/placeholder.svg"],
-    description: "Compact 87-key mechanical gaming keyboard with RGB backlighting and dust-proof red switches.",
-  },
-  {
-    id: "2",
-    name: "HP LaserJet Pro MFP M428fdw",
-    quantity: 8,
-    price: 95000,
-    weight: "13.5kg",
-    category: "Printers",
-    images: ["/placeholder.svg"],
-    description: "All-in-one monochrome laser printer with wireless connectivity, duplex printing and scanning.",
-  },
-  {
-    id: "3",
-    name: "Hikvision 4CH CCTV Package",
-    quantity: 15,
-    price: 45000,
-    weight: "5kg",
-    category: "CCTV & Security",
-    images: ["/placeholder.svg"],
-    description: "Complete 4-channel CCTV package with 2MP cameras, DVR, and 1TB hard drive included.",
-  },
-  {
-    id: "4",
-    name: "Lenovo ThinkPad E14 Gen 5",
-    quantity: 5,
-    price: 285000,
-    weight: "1.64kg",
-    category: "Laptops",
-    images: ["/placeholder.svg"],
-    description: "14-inch business laptop with Intel i5 13th Gen, 8GB RAM, 512GB SSD and Windows 11 Pro.",
-  },
-  {
-    id: "5",
-    name: "TP-Link Archer AX73 Router",
-    quantity: 20,
-    price: 28000,
-    weight: "700g",
-    category: "Networking",
-    images: ["/placeholder.svg"],
-    description: "AX5400 Dual-Band Wi-Fi 6 Router with Gigabit ports, OFDMA and 6 antennas for wide coverage.",
-  },
-  {
-    id: "6",
-    name: "APC Back-UPS 1100VA",
-    quantity: 30,
-    price: 32000,
-    weight: "7.5kg",
-    category: "UPS & Power",
-    images: ["/placeholder.svg"],
-    description: "1100VA/660W UPS with AVR, 6 outlets, and USB charging ports. Battery backup for computers.",
-  },
-  {
-    id: "7",
-    name: "Kingston 16GB DDR4 RAM",
-    quantity: 50,
-    price: 8500,
-    weight: "50g",
-    category: "Components",
-    images: ["/placeholder.svg"],
-    description: "16GB DDR4 3200MHz desktop memory module. Plug and play with automatic overclocking.",
-  },
-  {
-    id: "8",
-    name: "Redragon M711 Cobra Mouse",
-    quantity: 40,
-    price: 4500,
-    weight: "150g",
-    category: "Peripherals",
-    images: ["/placeholder.svg"],
-    description: "Ergonomic RGB gaming mouse with 10,000 DPI sensor, 7 programmable buttons.",
-  },
-];
+    if (aInStock !== bInStock) {
+      return bInStock - aInStock;
+    }
 
-const categories = ["All", ...Array.from(new Set(dummyProducts.map((p) => p.category)))];
+    return a.name.localeCompare(b.name);
+  });
+};
 
 const Technologies = () => {
   const navigate = useNavigate();
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ["product-categories"],
+    queryFn: () => fetchCategories(),
+    staleTime: 30 * 60 * 1000,
+  });
+
+  // Fetch page-by-page products with 24 items each, optionally filtered by category.
+  const { data, isLoading, isFetching, isError, error } = useQuery({
+    queryKey: ["products", currentPage, PAGE_SIZE, selectedCategoryId],
+    queryFn: () => fetchProducts(currentPage, PAGE_SIZE, selectedCategoryId ?? undefined),
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
+  });
+
+  const products = useMemo(() => sortProductsByStock(data?.data || []), [data?.data]);
+  const paginationMeta = data?.meta;
+  const lastPage = Number(paginationMeta?.last_page ?? 1);
+  const totalProducts = Number(paginationMeta?.total ?? products.length);
+  const fromProduct = Number(paginationMeta?.from ?? (products.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0));
+  const toProduct = Number(paginationMeta?.to ?? ((currentPage - 1) * PAGE_SIZE + products.length));
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategoryId]);
+
+  const categories = useMemo(() => {
+    const list: ProductCategory[] = categoriesData || [];
+    return [{ id: null as number | null, name: "All" }, ...list];
+  }, [categoriesData]);
+
+  // Search is applied on the current server page results.
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return products;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = products.filter((p: Product) => {
+      const searchableText = [
+        p.name,
+        p.description,
+        p.sku,
+        p.brand?.name,
+        p.category?.name,
+        p.variations?.[0]?.sub_sku,
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return searchableText.includes(query);
+    });
+    
+    // Ensure filtered results are also sorted by stock
+    return sortProductsByStock(filtered);
+  }, [products, searchQuery]);
+
+  // Helper function to get product price
+  const getProductPrice = (product: Product) => {
+    return product.variations?.[0]?.default_sell_price || 0;
+  };
+
+  // Helper function to get product stock
+  const getProductStock = (product: Product) => {
+    return product.variations?.[0]?.total_stock || 0;
+  };
+
+  // Helper function to get product image
+  const getProductImage = (product: Product) => {
+    return product.image_url || product.images?.[0]?.url || '/placeholder.svg';
+  };
+
+  // Helper function to strip HTML tags from description
+  const stripHtml = (html: string) => {
+    const tmp = document.createElement('DIV');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -156,66 +126,164 @@ const Technologies = () => {
             </p>
           </motion.div>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2 mb-10">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                className="px-4 py-2 text-sm font-medium rounded-lg border border-glow bg-card text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all"
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">Loading products...</p>
+            </div>
+          )}
 
-          {/* Products Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {dummyProducts.map((product, i) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="group rounded-xl bg-card border border-glow overflow-hidden hover:shadow-glow transition-all duration-300"
-              >
-                {/* 
-                  Product image - replace src with product.images[0] from API
-                  For product detail redirect: 
-                  <Link to={`/technologies/${product.id}`}> or window.open(apiDetailUrl) 
-                */}
-                <div className="aspect-square bg-secondary flex items-center justify-center overflow-hidden">
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-5">
-                  <span className="text-xs font-mono text-primary">{product.category}</span>
-                  <h3 className="text-sm font-bold text-foreground mt-1 mb-2 line-clamp-2">{product.name}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{product.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-foreground">
-                      LKR {product.price.toLocaleString()}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{product.weight}</span>
+          {/* Error State */}
+          {isError && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="rounded-lg bg-destructive/10 border border-destructive p-6 max-w-md text-center">
+                <h3 className="text-lg font-semibold text-destructive mb-2">Failed to load products</h3>
+                <p className="text-sm text-muted-foreground">
+                  {error instanceof Error ? error.message : 'An error occurred while fetching products'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Products View */}
+          {!isLoading && !isError && (
+            <>
+              {/* Search Bar and Category Filter */}
+              <div className="mb-6">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                  {/* Category Filter Dropdown */}
+                  <select
+                    value={selectedCategoryId ?? "all"}
+                    onChange={(e) => setSelectedCategoryId(e.target.value === "all" ? null : Number(e.target.value))}
+                    className="px-4 py-3 rounded-lg bg-card border border-glow text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer w-full sm:w-auto min-w-[200px]"
+                  >
+                    {categories.map((cat) => (
+                      <option key={cat.id ?? "all"} value={cat.id ?? "all"}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {/* Search Bar */}
+                  <div className="relative flex-1 w-full">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Search products by name, brand, SKU, or description..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-12 pr-12 py-3 rounded-lg bg-card border border-glow text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X size={20} />
+                      </button>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-glow">
-                    <span className={`text-xs font-medium ${product.quantity > 0 ? "text-green-400" : "text-destructive"}`}>
-                      {product.quantity > 0 ? `In Stock (${product.quantity})` : "Out of Stock"}
-                    </span>
-                    {/* 
-                      To redirect to product detail from API:
-                      onClick={() => window.open(`https://your-api.com/product/${product.id}`, '_blank')}
-                    */}
-                    <button onClick={() => navigate(`/technologies/${product.id}`)} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-accent transition-colors">
-                      <ShoppingCart size={14} /> View Details
-                    </button>
-                  </div>
                 </div>
-              </motion.div>
-            ))}
-          </div>
+                
+                {searchQuery && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} matching "{searchQuery}"
+                  </p>
+                )}
+                {isFetching && !isLoading && (
+                  <p className="text-sm text-muted-foreground mt-2">Loading page {currentPage}...</p>
+                )}
+              </div>
+
+              {/* No Products Message */}
+              {filteredProducts.length === 0 && (
+                <div className="text-center py-20">
+                  <p className="text-muted-foreground">No products found in this category.</p>
+                </div>
+              )}
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between mb-6 gap-4">
+                <p className="text-sm text-muted-foreground">
+                  Showing {fromProduct} - {toProduct} of {totalProducts}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1 || isFetching}
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-glow bg-card text-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:border-primary/50 transition-all"
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <span className="text-sm text-muted-foreground min-w-[120px] text-center">
+                    Page {currentPage} of {lastPage}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, lastPage))}
+                    disabled={currentPage >= lastPage || isFetching}
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-glow bg-card text-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:border-primary/50 transition-all"
+                    aria-label="Next page"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Products Grid */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredProducts.map((product: Product, i: number) => {
+                  const price = getProductPrice(product);
+                  const stock = getProductStock(product);
+                  const imageUrl = getProductImage(product);
+                  const description = stripHtml(product.description);
+                  
+                  return (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: i * 0.05 }}
+                      className="group rounded-xl bg-card border border-glow overflow-hidden hover:shadow-glow transition-all duration-300"
+                    >
+                      <div className="aspect-square bg-secondary flex items-center justify-center overflow-hidden">
+                        <img
+                          src={imageUrl}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="p-5">
+                        <span className="text-xs font-mono text-primary">{product.category?.name || 'Uncategorized'}</span>
+                        <h3 className="text-sm font-bold text-foreground mt-1 mb-2 line-clamp-2">{product.name}</h3>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{description}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-bold text-foreground">
+                            LKR {price.toLocaleString()}
+                          </span>
+                          {product.weight && (
+                            <span className="text-xs text-muted-foreground">{product.weight}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-glow">
+                          <span className={`text-xs font-medium ${stock > 0 ? "text-green-400" : "text-destructive"}`}>
+                            {stock > 0 ? `In Stock (${stock})` : "Out of Stock"}
+                          </span>
+                          <button 
+                            onClick={() => navigate(`/technologies/${product.id}`)} 
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:text-accent transition-colors"
+                          >
+                            <ShoppingCart size={14} /> View Details
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </section>
       <Footer />

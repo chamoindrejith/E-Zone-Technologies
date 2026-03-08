@@ -33,7 +33,7 @@ const Contact = () => {
           >
             {[
               { icon: Phone, label: "Hotline", value: "071 871 1111" },
-              { icon: Phone, label: "E Zone Technologies", value: "071 781 1111 / 071 381 1111 1" },
+              { icon: Phone, label: "E Zone Technologies", value: "071 781 1111 / 071 381 1111" },
               { icon: Phone, label: "E Zone Repair Center", value: "071 071 7777" },
               { icon: Phone, label: "E Zone IT Solutions", value: "071 871 1100" },
               { icon: Mail, label: "Email", value: "ezonetechnologies01@gmail.com" },
