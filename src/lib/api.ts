@@ -118,9 +118,20 @@ interface Category {
   name: string;
 }
 
+interface SubCategory {
+  id: number;
+  name: string;
+}
+
 export interface ProductCategory {
   id: number;
   name: string;
+}
+
+export interface ProductSubCategory {
+  id: number;
+  name: string;
+  category_id: number;
 }
 
 interface Unit {
@@ -161,7 +172,7 @@ export interface Product {
   images: ImageItem[];
   brand: Brand | null;
   category: Category | null;
-  sub_category: any;
+  sub_category: SubCategory | null;
   unit: Unit;
   enable_stock: boolean;
   barcode_type: string;
@@ -186,7 +197,8 @@ const buildProductsPath = (
   baseUrl: string,
   page: number,
   perPage?: number,
-  categoryId?: number
+  categoryId?: number,
+  subCategoryId?: number
 ) => {
   if (import.meta.env.DEV) {
     const params = new URLSearchParams({ page: String(page) });
@@ -196,16 +208,28 @@ const buildProductsPath = (
     if (typeof categoryId === "number") {
       params.set("category_id", String(categoryId));
     }
+    if (typeof subCategoryId === "number") {
+      params.set("sub_category_id", String(subCategoryId));
+    }
     return `${baseUrl}/products?${params.toString()}`;
   }
 
   const basePath = buildProdUrl(baseUrl, "products", page, perPage);
-  if (typeof categoryId !== "number") {
+  const params: string[] = [];
+  
+  if (typeof categoryId === "number") {
+    params.push(`category_id=${categoryId}`);
+  }
+  if (typeof subCategoryId === "number") {
+    params.push(`sub_category_id=${subCategoryId}`);
+  }
+  
+  if (params.length === 0) {
     return basePath;
   }
-
+  
   const separator = basePath.includes("?") ? "&" : "?";
-  return `${basePath}${separator}category_id=${categoryId}`;
+  return `${basePath}${separator}${params.join("&")}`;
 };
 
 /**
@@ -213,16 +237,18 @@ const buildProductsPath = (
  * @param page - Page number (default: 1)
  * @param perPage - Items per page
  * @param categoryId - Category ID filter
+ * @param subCategoryId - Sub-category ID filter
  * @returns Promise with products data
  */
 export const fetchProducts = async (
   page: number = 1,
   perPage?: number,
-  categoryId?: number
+  categoryId?: number,
+  subCategoryId?: number
 ): Promise<ProductsResponse> => {
   try {
     const result = await requestJsonWithFallback((baseUrl) =>
-      buildProductsPath(baseUrl, page, perPage, categoryId)
+      buildProductsPath(baseUrl, page, perPage, categoryId, subCategoryId)
     );
 
     // The API returns { data: [...], pagination: {...}, links: {...} }
@@ -239,6 +265,35 @@ export const fetchProducts = async (
 };
 
 /**
+ * Fetch all products for a category across all pages.
+ * Useful when backend sub-category filtering is not reliable.
+ */
+export const fetchAllProductsByCategory = async (categoryId: number): Promise<Product[]> => {
+  const perPage = 1000;
+  const firstPage = await requestJsonWithFallback((baseUrl) =>
+    buildProductsPath(baseUrl, 1, perPage, categoryId)
+  );
+
+  const allProducts: Product[] = firstPage.data || [];
+  const totalPages = Number(firstPage.pagination?.last_page ?? firstPage.meta?.last_page ?? 1);
+
+  if (totalPages > 1) {
+    const pageNumbers = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+    const pageResults = await Promise.all(
+      pageNumbers.map((pageNum) =>
+        requestJsonWithFallback((baseUrl) => buildProductsPath(baseUrl, pageNum, perPage, categoryId))
+      )
+    );
+
+    pageResults.forEach((pageResult) => {
+      allProducts.push(...(pageResult.data || []));
+    });
+  }
+
+  return allProducts;
+};
+
+/**
  * Fetch all available product categories by extracting from ALL product pages.
  * Uses high per_page value to minimize requests.
  * @returns Promise with categories list
@@ -251,10 +306,9 @@ export const fetchCategories = async (): Promise<ProductCategory[]> => {
     );
 
     const categoriesMap = new Map<number, ProductCategory>();
-    const totalPages = Number(firstPageResult.meta?.last_page ?? 1);
-    const totalProducts = Number(firstPageResult.meta?.total ?? 0);
-
-    console.log(`Total products: ${totalProducts}, Total pages (with per_page=1000): ${totalPages}`);
+    const pagination = firstPageResult.pagination || firstPageResult.meta;
+    const totalPages = Number(pagination?.last_page ?? 1);
+    const totalProducts = Number(pagination?.total ?? 0);
 
     // Extract categories from first page
     const firstPageProducts = firstPageResult.data || [];
@@ -276,8 +330,6 @@ export const fetchCategories = async (): Promise<ProductCategory[]> => {
 
       for (let i = 0; i < pageNumbers.length; i += batchSize) {
         const batch = pageNumbers.slice(i, i + batchSize);
-        
-        console.log(`Fetching batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(pageNumbers.length / batchSize)}`);
         
         const batchResults = await Promise.all(
           batch.map(pageNum =>
@@ -304,16 +356,91 @@ export const fetchCategories = async (): Promise<ProductCategory[]> => {
           });
         });
 
-        console.log(`Categories found so far: ${categoriesMap.size}`);
       }
     }
 
     // Convert map to array and sort by name
     const result = Array.from(categoriesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-    console.log(`Final: Found ${result.length} unique categories`);
     return result;
   } catch (error) {
     console.error("Failed to fetch categories:", error);
+    return [];
+  }
+};
+
+/**
+ * Fetch all available product sub-categories by extracting from ALL product pages.
+ * Uses high per_page value to minimize requests.
+ * @returns Promise with sub-categories list
+ */
+export const fetchSubCategories = async (): Promise<ProductSubCategory[]> => {
+  try {
+    // Fetch first page with very high per_page to get many products at once
+    const firstPageResult = await requestJsonWithFallback((baseUrl) =>
+      buildProductsPath(baseUrl, 1, 1000) // Request 1000 items per page
+    );
+
+    const subCategoriesMap = new Map<number, ProductSubCategory>();
+    const pagination = firstPageResult.pagination || firstPageResult.meta;
+    const totalPages = Number(pagination?.last_page ?? 1);
+    const totalProducts = Number(pagination?.total ?? 0);
+
+    // Extract sub-categories from first page
+    const firstPageProducts = firstPageResult.data || [];
+    firstPageProducts.forEach((product: Product) => {
+      if (product.sub_category?.id && product.sub_category?.name && product.category?.id) {
+        if (!subCategoriesMap.has(product.sub_category.id)) {
+          subCategoriesMap.set(product.sub_category.id, {
+            id: product.sub_category.id,
+            name: product.sub_category.name,
+            category_id: product.category.id
+          });
+        }
+      }
+    });
+
+    // Fetch remaining pages in smaller batches
+    if (totalPages > 1) {
+      const batchSize = 5; // Fetch 5 pages at a time (5000 products per batch)
+      const pageNumbers = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+
+      for (let i = 0; i < pageNumbers.length; i += batchSize) {
+        const batch = pageNumbers.slice(i, i + batchSize);
+        
+        const batchResults = await Promise.all(
+          batch.map(pageNum =>
+            requestJsonWithFallback((baseUrl) => buildProductsPath(baseUrl, pageNum, 1000))
+              .catch((err) => {
+                console.error(`Failed to fetch page ${pageNum}:`, err);
+                return { data: [] };
+              })
+          )
+        );
+
+        // Extract sub-categories from batch
+        batchResults.forEach(result => {
+          const pageProducts = result.data || [];
+          pageProducts.forEach((product: Product) => {
+            if (product.sub_category?.id && product.sub_category?.name && product.category?.id) {
+              if (!subCategoriesMap.has(product.sub_category.id)) {
+                subCategoriesMap.set(product.sub_category.id, {
+                  id: product.sub_category.id,
+                  name: product.sub_category.name,
+                  category_id: product.category.id
+                });
+              }
+            }
+          });
+        });
+
+      }
+    }
+
+    // Convert map to array and sort by name
+    const result = Array.from(subCategoriesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+    return result;
+  } catch (error) {
+    console.error("Failed to fetch sub-categories:", error);
     return [];
   }
 };

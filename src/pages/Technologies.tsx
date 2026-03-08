@@ -5,7 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { fetchCategories, fetchProducts, type Product, type ProductCategory } from "@/lib/api";
+import {
+  fetchAllProductsByCategory,
+  fetchCategories,
+  fetchSubCategories,
+  fetchProducts,
+  type Product,
+  type ProductCategory,
+  type ProductSubCategory,
+} from "@/lib/api";
 
 const PAGE_SIZE = 24;
 
@@ -13,18 +21,14 @@ const sortProductsByStock = (items: Product[]) => {
   return [...items].sort((a, b) => {
     const aInStock = (a.variations?.[0]?.total_stock || 0) > 0 ? 1 : 0;
     const bInStock = (b.variations?.[0]?.total_stock || 0) > 0 ? 1 : 0;
-
-    if (aInStock !== bInStock) {
-      return bInStock - aInStock;
-    }
-
-    return a.name.localeCompare(b.name);
+    return bInStock - aInStock;
   });
 };
 
 const Technologies = () => {
   const navigate = useNavigate();
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -34,29 +38,83 @@ const Technologies = () => {
     staleTime: 30 * 60 * 1000,
   });
 
-  // Fetch page-by-page products with 24 items each, optionally filtered by category.
+  const { data: subCategoriesData } = useQuery({
+    queryKey: ["product-subcategories"],
+    queryFn: () => fetchSubCategories(),
+    staleTime: 30 * 60 * 1000,
+  });
+
+  const isUsingLocalSubCategoryFiltering = selectedCategoryId !== null && selectedSubCategoryId !== null;
+
+  // Default server pagination for all products or category-only filtering.
   const { data, isLoading, isFetching, isError, error } = useQuery({
     queryKey: ["products", currentPage, PAGE_SIZE, selectedCategoryId],
     queryFn: () => fetchProducts(currentPage, PAGE_SIZE, selectedCategoryId ?? undefined),
     staleTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData,
+    enabled: !isUsingLocalSubCategoryFiltering,
   });
 
-  const products = useMemo(() => sortProductsByStock(data?.data || []), [data?.data]);
-  const paginationMeta = data?.meta;
-  const lastPage = Number(paginationMeta?.last_page ?? 1);
-  const totalProducts = Number(paginationMeta?.total ?? products.length);
-  const fromProduct = Number(paginationMeta?.from ?? (products.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0));
-  const toProduct = Number(paginationMeta?.to ?? ((currentPage - 1) * PAGE_SIZE + products.length));
+  // Backend sub-category filtering is unreliable, so fetch full category and filter locally.
+  const { data: categoryProductsData, isLoading: isCategoryProductsLoading, isFetching: isCategoryProductsFetching } = useQuery({
+    queryKey: ["category-products-all", selectedCategoryId],
+    queryFn: () => fetchAllProductsByCategory(selectedCategoryId as number),
+    staleTime: 5 * 60 * 1000,
+    enabled: isUsingLocalSubCategoryFiltering,
+  });
+
+  const products = useMemo(() => {
+    if (isUsingLocalSubCategoryFiltering) {
+      const categoryProducts = categoryProductsData || [];
+      const subCategoryProducts = categoryProducts.filter(
+        (product) => product.sub_category?.id === selectedSubCategoryId
+      );
+      const sorted = sortProductsByStock(subCategoryProducts);
+      const start = (currentPage - 1) * PAGE_SIZE;
+      return sorted.slice(start, start + PAGE_SIZE);
+    }
+
+    return sortProductsByStock(data?.data || []);
+  }, [isUsingLocalSubCategoryFiltering, categoryProductsData, selectedSubCategoryId, currentPage, data?.data]);
+
+  const totalProducts = useMemo(() => {
+    if (isUsingLocalSubCategoryFiltering) {
+      const categoryProducts = categoryProductsData || [];
+      return categoryProducts.filter((product) => product.sub_category?.id === selectedSubCategoryId).length;
+    }
+    return Number(data?.meta?.total ?? products.length);
+  }, [isUsingLocalSubCategoryFiltering, categoryProductsData, selectedSubCategoryId, data?.meta?.total, products.length]);
+
+  const lastPage = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
+  const fromProduct = totalProducts === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const toProduct = totalProducts === 0 ? 0 : Math.min(currentPage * PAGE_SIZE, totalProducts);
+  const resolvedIsLoading = isUsingLocalSubCategoryFiltering ? isCategoryProductsLoading : isLoading;
+  const resolvedIsFetching = isUsingLocalSubCategoryFiltering ? isCategoryProductsFetching : isFetching;
 
   useEffect(() => {
     setCurrentPage(1);
+    // Reset sub-category when category changes
+    setSelectedSubCategoryId(null);
   }, [selectedCategoryId]);
+
+  // Separate effect for sub-category page reset
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedSubCategoryId]);
 
   const categories = useMemo(() => {
     const list: ProductCategory[] = categoriesData || [];
     return [{ id: null as number | null, name: "All" }, ...list];
   }, [categoriesData]);
+
+  const subCategories = useMemo(() => {
+    const list: ProductSubCategory[] = subCategoriesData || [];
+
+    // Show related sub-categories only when a category is selected.
+    const filteredList = selectedCategoryId !== null ? list.filter((sc) => sc.category_id === selectedCategoryId) : [];
+
+    return [{ id: null as number | null, name: "All", category_id: 0 }, ...filteredList];
+  }, [subCategoriesData, selectedCategoryId]);
 
   // Search is applied on the current server page results.
   const filteredProducts = useMemo(() => {
@@ -127,7 +185,7 @@ const Technologies = () => {
           </motion.div>
 
           {/* Loading State */}
-          {isLoading && (
+          {resolvedIsLoading && (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
               <p className="text-muted-foreground">Loading products...</p>
@@ -147,7 +205,7 @@ const Technologies = () => {
           )}
 
           {/* Products View */}
-          {!isLoading && !isError && (
+          {!resolvedIsLoading && !isError && (
             <>
               {/* Search Bar and Category Filter */}
               <div className="mb-6">
@@ -161,6 +219,20 @@ const Technologies = () => {
                     {categories.map((cat) => (
                       <option key={cat.id ?? "all"} value={cat.id ?? "all"}>
                         {cat.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Sub-Category Filter Dropdown */}
+                  <select
+                    value={selectedSubCategoryId ?? "all"}
+                    onChange={(e) => setSelectedSubCategoryId(e.target.value === "all" ? null : Number(e.target.value))}
+                    disabled={selectedCategoryId === null}
+                    className="px-4 py-3 rounded-lg bg-card border border-glow text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all cursor-pointer w-full sm:w-auto min-w-[200px]"
+                  >
+                    {subCategories.map((subCat) => (
+                      <option key={subCat.id ?? "all"} value={subCat.id ?? "all"}>
+                        {subCat.name}
                       </option>
                     ))}
                   </select>
@@ -191,15 +263,27 @@ const Technologies = () => {
                     Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} matching "{searchQuery}"
                   </p>
                 )}
-                {isFetching && !isLoading && (
+                {(selectedCategoryId !== null || selectedSubCategoryId !== null) && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Filtering by: {selectedCategoryId !== null && `Category - ${categories.find(c => c.id === selectedCategoryId)?.name}`}
+                    {selectedCategoryId !== null && selectedSubCategoryId !== null && ' | '}
+                    {selectedSubCategoryId !== null && `Sub-Category - ${subCategories.find(sc => sc.id === selectedSubCategoryId)?.name}`}
+                  </p>
+                )}
+                {resolvedIsFetching && !resolvedIsLoading && (
                   <p className="text-sm text-muted-foreground mt-2">Loading page {currentPage}...</p>
                 )}
               </div>
 
               {/* No Products Message */}
-              {filteredProducts.length === 0 && (
+              {filteredProducts.length === 0 && !resolvedIsFetching && (
                 <div className="text-center py-20">
-                  <p className="text-muted-foreground">No products found in this category.</p>
+                  <p className="text-muted-foreground">No products found.</p>
+                  {(selectedCategoryId !== null || selectedSubCategoryId !== null) && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Try selecting a different category/sub-category or use the search bar.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -211,7 +295,7 @@ const Technologies = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1 || isFetching}
+                    disabled={currentPage === 1 || resolvedIsFetching}
                     className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-glow bg-card text-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:border-primary/50 transition-all"
                     aria-label="Previous page"
                   >
@@ -222,7 +306,7 @@ const Technologies = () => {
                   </span>
                   <button
                     onClick={() => setCurrentPage((prev) => Math.min(prev + 1, lastPage))}
-                    disabled={currentPage >= lastPage || isFetching}
+                    disabled={currentPage >= lastPage || resolvedIsFetching}
                     className="inline-flex items-center justify-center w-10 h-10 rounded-lg border border-glow bg-card text-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:border-primary/50 transition-all"
                     aria-label="Next page"
                   >
@@ -255,7 +339,12 @@ const Technologies = () => {
                         />
                       </div>
                       <div className="p-5">
-                        <span className="text-xs font-mono text-primary">{product.category?.name || 'Uncategorized'}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-mono text-primary">{product.category?.name || 'Uncategorized'}</span>
+                          {product.sub_category?.name && (
+                            <span className="text-xs font-mono text-muted-foreground">• {product.sub_category.name}</span>
+                          )}
+                        </div>
                         <h3 className="text-sm font-bold text-foreground mt-1 mb-2 line-clamp-2">{product.name}</h3>
                         <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{description}</p>
                         <div className="flex items-center justify-between">
