@@ -134,6 +134,11 @@ export interface ProductSubCategory {
   category_id: number;
 }
 
+export interface ProductBrand {
+  id: number;
+  name: string;
+}
+
 interface Unit {
   id: number;
   name: string;
@@ -198,7 +203,8 @@ const buildProductsPath = (
   page: number,
   perPage?: number,
   categoryId?: number,
-  subCategoryId?: number
+  subCategoryId?: number,
+  brandId?: number
 ) => {
   if (import.meta.env.DEV) {
     const params = new URLSearchParams({ page: String(page) });
@@ -211,6 +217,9 @@ const buildProductsPath = (
     if (typeof subCategoryId === "number") {
       params.set("sub_category_id", String(subCategoryId));
     }
+    if (typeof brandId === "number") {
+      params.set("brand_id", String(brandId));
+    }
     return `${baseUrl}/products?${params.toString()}`;
   }
 
@@ -222,6 +231,9 @@ const buildProductsPath = (
   }
   if (typeof subCategoryId === "number") {
     params.push(`sub_category_id=${subCategoryId}`);
+  }
+  if (typeof brandId === "number") {
+    params.push(`brand_id=${brandId}`);
   }
   
   if (params.length === 0) {
@@ -244,11 +256,12 @@ export const fetchProducts = async (
   page: number = 1,
   perPage?: number,
   categoryId?: number,
-  subCategoryId?: number
+  subCategoryId?: number,
+  brandId?: number
 ): Promise<ProductsResponse> => {
   try {
     const result = await requestJsonWithFallback((baseUrl) =>
-      buildProductsPath(baseUrl, page, perPage, categoryId, subCategoryId)
+      buildProductsPath(baseUrl, page, perPage, categoryId, subCategoryId, brandId)
     );
 
     // The API returns { data: [...], pagination: {...}, links: {...} }
@@ -441,6 +454,79 @@ export const fetchSubCategories = async (): Promise<ProductSubCategory[]> => {
     return result;
   } catch (error) {
     console.error("Failed to fetch sub-categories:", error);
+    return [];
+  }
+};
+
+/**
+ * Fetch all available product brands by extracting from ALL product pages.
+ * Uses high per_page value to minimize requests.
+ * @returns Promise with brands list
+ */
+export const fetchBrands = async (): Promise<ProductBrand[]> => {
+  try {
+    // Fetch first page with very high per_page to get many products at once
+    const firstPageResult = await requestJsonWithFallback((baseUrl) =>
+      buildProductsPath(baseUrl, 1, 1000) // Request 1000 items per page
+    );
+
+    const brandsMap = new Map<number, ProductBrand>();
+    const pagination = firstPageResult.pagination || firstPageResult.meta;
+    const totalPages = Number(pagination?.last_page ?? 1);
+
+    // Extract brands from first page
+    const firstPageProducts = firstPageResult.data || [];
+    firstPageProducts.forEach((product: Product) => {
+      if (product.brand?.id && product.brand?.name) {
+        if (!brandsMap.has(product.brand.id)) {
+          brandsMap.set(product.brand.id, {
+            id: product.brand.id,
+            name: product.brand.name
+          });
+        }
+      }
+    });
+
+    // Fetch remaining pages in smaller batches
+    if (totalPages > 1) {
+      const batchSize = 5; // Fetch 5 pages at a time (5000 products per batch)
+      const pageNumbers = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
+
+      for (let i = 0; i < pageNumbers.length; i += batchSize) {
+        const batch = pageNumbers.slice(i, i + batchSize);
+        
+        const batchResults = await Promise.all(
+          batch.map(pageNum =>
+            requestJsonWithFallback((baseUrl) => buildProductsPath(baseUrl, pageNum, 1000))
+              .catch((err) => {
+                console.error(`Failed to fetch page ${pageNum}:`, err);
+                return { data: [] };
+              })
+          )
+        );
+
+        // Extract brands from batch
+        batchResults.forEach(result => {
+          const pageProducts = result.data || [];
+          pageProducts.forEach((product: Product) => {
+            if (product.brand?.id && product.brand?.name) {
+              if (!brandsMap.has(product.brand.id)) {
+                brandsMap.set(product.brand.id, {
+                  id: product.brand.id,
+                  name: product.brand.name
+                });
+              }
+            }
+          });
+        });
+      }
+    }
+
+    // Convert map to array and sort by name
+    const result = Array.from(brandsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+    return result;
+  } catch (error) {
+    console.error("Failed to fetch brands:", error);
     return [];
   }
 };

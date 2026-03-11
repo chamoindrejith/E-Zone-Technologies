@@ -36,11 +36,7 @@ const ProductDetail = () => {
     return images.length > 0 ? images : ['/placeholder.svg'];
   };
 
-  const stripHtml = (html: string) => {
-    const tmp = document.createElement('DIV');
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
-  };
+  const variations = product?.variations || [];
 
   if (isLoading) {
     return (
@@ -138,11 +134,6 @@ const ProductDetail = () => {
                 {product.category?.name || 'Uncategorized'}
               </span>
               <h1 className="text-2xl md:text-4xl font-bold text-foreground mt-2 mb-4">{product.name}</h1>
-              <div 
-                className="text-muted-foreground mb-8 leading-relaxed prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: product.description }}
-              />
-
               <div className="text-3xl font-bold text-foreground mb-8">
                 LKR {getProductPrice(product).toLocaleString()}
               </div>
@@ -172,6 +163,87 @@ const ProductDetail = () => {
               <div className={`inline-flex items-center gap-2 text-sm font-semibold mb-6 ${getProductStock(product) > 0 ? "text-green-400" : "text-destructive"}`}>
                 <span className={`w-2 h-2 rounded-full ${getProductStock(product) > 0 ? "bg-green-400" : "bg-destructive"}`} />
                 {getProductStock(product) > 0 ? "In Stock" : "Out of Stock"}
+              </div>
+
+              {variations.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-semibold text-foreground mb-3">Variations</h2>
+                  <div className="rounded-xl border border-glow bg-card overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-secondary/60 text-muted-foreground">
+                          <tr>
+                            <th className="text-left px-4 py-3 font-semibold">Variation</th>
+                            <th className="text-left px-4 py-3 font-semibold">SKU</th>
+                            <th className="text-right px-4 py-3 font-semibold">Price (LKR)</th>
+                            <th className="text-right px-4 py-3 font-semibold">Stock</th>
+                            <th className="text-left px-4 py-3 font-semibold">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {variations.map((variation: any) => {
+                            const variationStock = variation.total_stock || 0;
+                            const variationName =
+                              variation.name || variation.product_variation_name || "Default";
+
+                            return (
+                              <tr key={variation.id} className="border-t border-glow">
+                                <td className="px-4 py-3 text-foreground">{variationName}</td>
+                                <td className="px-4 py-3 text-muted-foreground">{variation.sub_sku || "-"}</td>
+                                <td className="px-4 py-3 text-right text-foreground font-semibold">
+                                  {Number(variation.default_sell_price || 0).toLocaleString()}
+                                </td>
+                                <td className="px-4 py-3 text-right text-foreground">{variationStock}</td>
+                                <td className="px-4 py-3">
+                                  <span className={`inline-flex items-center gap-1 ${variationStock > 0 ? "text-green-400" : "text-destructive"}`}>
+                                    <span className={`w-2 h-2 rounded-full ${variationStock > 0 ? "bg-green-400" : "bg-destructive"}`} />
+                                    {variationStock > 0 ? "In Stock" : "Out of Stock"}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Product Details */}
+              <div className="mb-8 rounded-xl border border-glow bg-card p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-4">Product Details</h2>
+                <div className="grid gap-3 text-sm">
+                  <div className="flex justify-between py-2 border-b border-glow/50">
+                    <span className="text-muted-foreground">SKU:</span>
+                    <span className="text-foreground font-medium">{product.sku || "N/A"}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-glow/50">
+                    <span className="text-muted-foreground">Brand:</span>
+                    <span className="text-foreground font-medium">{product.brand?.name || "N/A"}</span>
+                  </div>
+                  
+                  <div className="flex justify-between py-2 border-b border-glow/50">
+                    <span className="text-muted-foreground">Available in locations:</span>
+                    <span className="text-foreground font-medium text-right">
+                      {product.locations && product.locations.length > 0 
+                        ? product.locations.map((loc: any) => loc.name).join(", ")
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-glow/50">
+                    <span className="text-muted-foreground">Selling Price Tax Type:</span>
+                    <span className="text-foreground font-medium">
+                      {variations.length > 0 && variations[0].sell_price_inc_tax 
+                        ? "Inclusive of Tax" 
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <span className="text-muted-foreground">Product Type:</span>
+                    <span className="text-foreground font-medium capitalize">{product.type || "N/A"}</span>
+                  </div>
+                </div>
               </div>
 
               <a 

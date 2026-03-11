@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Monitor, Wrench, Code, GraduationCap } from "lucide-react";
+import { Monitor, Wrench, Code, GraduationCap, ArrowRight } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import redragonLogo from "@/assets/redragon-logo.png";
 
@@ -167,6 +167,13 @@ const Hero = () => {
               className="inline-flex items-center gap-2 px-8 py-4 rounded-lg bg-gradient-brand text-primary-foreground font-semibold hover:opacity-90 transition-opacity shadow-glow"
             >
               Contact Us
+            </button>
+            <button
+              onClick={() => navigate("/technologies")}
+              className="group inline-flex items-center gap-2 px-8 py-4 rounded-lg border border-glow bg-card text-foreground font-semibold hover:border-primary/50 hover:shadow-glow-sm transition-all duration-300"
+            >
+              <span>Explore Products</span>
+              <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
             </button>
           </motion.div>
         </div>
