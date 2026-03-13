@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, Mail, Globe, Clock, MapPin } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 const Contact = () => {
+  const location = useLocation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -13,17 +15,62 @@ const Contact = () => {
   const [result, setResult] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const intent = queryParams.get("intent");
+
+    if (intent !== "purchase") {
+      return;
+    }
+
+    const productName = queryParams.get("productName") || "N/A";
+    const sku = queryParams.get("sku") || "N/A";
+    const brand = queryParams.get("brand") || "N/A";
+    const status = queryParams.get("status") || "N/A";
+    const price = queryParams.get("price") || "N/A";
+
+    const purchaseMessage = [
+      "Hi E Zone Team,",
+      "",
+      "I am interested in purchasing this product:",
+      `Product Name: ${productName}`,
+      `SKU: ${sku}`,
+      `Brand: ${brand}`,
+      `Status: ${status}`,
+      `Price: ${price}`,
+      "",
+      "Please contact me with the next steps.",
+    ].join("\n");
+
+    setFormData((prev) => ({
+      ...prev,
+      message: purchaseMessage,
+    }));
+    setResult("");
+  }, [location.search]);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    const value =
+      e.target.name === "phone"
+        ? e.target.value.replace(/\D/g, "").slice(0, 10)
+        : e.target.value;
+
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     }));
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!/^\d{10}$/.test(formData.phone)) {
+      setResult("Phone number must be exactly 10 digits.");
+      return;
+    }
+
     setIsSubmitting(true);
     setResult("Sending...");
 
@@ -155,7 +202,6 @@ const Contact = () => {
               <input
                 type="text"
                 name="name"
-                required
                 placeholder="Your name"
                 value={formData.name}
                 onChange={handleChange}
@@ -184,7 +230,11 @@ const Contact = () => {
               <input
                 type="tel"
                 name="phone"
-                placeholder="071 234 5678"
+                placeholder="0712345678"
+                required
+                inputMode="numeric"
+                pattern="[0-9]{10}"
+                maxLength={10}
                 value={formData.phone}
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg bg-secondary border border-glow text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"

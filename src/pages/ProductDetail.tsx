@@ -37,6 +37,17 @@ const ProductDetail = () => {
   };
 
   const variations = product?.variations || [];
+  const productPrice = Number(getProductPrice(product) || 0);
+  const productStock = Number(getProductStock(product) || 0);
+  const productStatus = productStock > 0 ? "In Stock" : "Out of Stock";
+  const purchaseContactSearch = new URLSearchParams({
+    intent: "purchase",
+    productName: product?.name || "N/A",
+    sku: product?.sku || "N/A",
+    brand: product?.brand?.name || "N/A",
+    status: productStatus,
+    price: `LKR ${productPrice.toLocaleString()}`,
+  }).toString();
 
   if (isLoading) {
     return (
@@ -135,14 +146,14 @@ const ProductDetail = () => {
               </span>
               <h1 className="text-2xl md:text-4xl font-bold text-foreground mt-2 mb-4">{product.name}</h1>
               <div className="text-3xl font-bold text-foreground mb-8">
-                LKR {getProductPrice(product).toLocaleString()}
+                LKR {productPrice.toLocaleString()}
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-8">
                 <div className="p-4 rounded-xl bg-card border border-glow text-center">
                   <Package size={20} className="mx-auto mb-2 text-primary" />
                   <span className="text-xs text-muted-foreground block">Stock</span>
-                  <span className="text-sm font-bold text-foreground">{getProductStock(product)} units</span>
+                  <span className="text-sm font-bold text-foreground">{productStock} units</span>
                 </div>
                 {product.weight && (
                   <div className="p-4 rounded-xl bg-card border border-glow text-center">
@@ -160,9 +171,9 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              <div className={`inline-flex items-center gap-2 text-sm font-semibold mb-6 ${getProductStock(product) > 0 ? "text-green-400" : "text-destructive"}`}>
-                <span className={`w-2 h-2 rounded-full ${getProductStock(product) > 0 ? "bg-green-400" : "bg-destructive"}`} />
-                {getProductStock(product) > 0 ? "In Stock" : "Out of Stock"}
+              <div className={`inline-flex items-center gap-2 text-sm font-semibold mb-6 ${productStock > 0 ? "text-green-400" : "text-destructive"}`}>
+                <span className={`w-2 h-2 rounded-full ${productStock > 0 ? "bg-green-400" : "bg-destructive"}`} />
+                {productStatus}
               </div>
 
               {variations.length > 0 && (
@@ -246,12 +257,16 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <a 
-                href="tel:0718711111" 
+              <Link
+                to={{
+                  pathname: "/",
+                  search: `?${purchaseContactSearch}`,
+                  hash: "#contact",
+                }}
                 className="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-brand text-primary-foreground font-semibold hover:opacity-90 transition-opacity shadow-glow"
               >
-                <ShoppingCart size={20} /> Contact for Purchase
-              </a>
+                <ShoppingCart size={20} /> Purchase
+              </Link>
             </motion.div>
           </div>
         </div>
