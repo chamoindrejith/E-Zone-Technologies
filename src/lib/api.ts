@@ -537,39 +537,26 @@ export const fetchBrands = async (): Promise<ProductBrand[]> => {
  */
 export const fetchAllProducts = async (): Promise<ProductsResponse> => {
   try {
+    const perPage = 1000;
     // First, fetch the first page to get pagination metadata
-    const firstPageResult = await requestJsonWithFallback((baseUrl) => {
-      return import.meta.env.DEV
-        ? `${baseUrl}/products?page=1`
-        : buildProdUrl(baseUrl, "products", 1);
-    });
+    const firstPageResult = await requestJsonWithFallback((baseUrl) =>
+      buildProductsPath(baseUrl, 1, perPage)
+    );
 
     const allProducts: Product[] = firstPageResult.data || [];
-    const pagination = firstPageResult.pagination;
+    const pagination = firstPageResult.pagination || firstPageResult.meta;
+    const totalPages = Number(pagination?.last_page ?? 1);
 
-    // If there are more pages, fetch them all
-    if (pagination && pagination.last_page > 1) {
-      const totalPages = pagination.last_page;
-      
-      // Create an array of page numbers to fetch (pages 2 to last_page)
+    // If there are more pages, fetch them all in parallel
+    if (totalPages > 1) {
       const pageNumbers = Array.from({ length: totalPages - 1 }, (_, i) => i + 2);
-      
-      // Fetch all pages in parallel for better performance
-      const pagePromises = pageNumbers.map(async (page) => {
-        const result = await requestJsonWithFallback((baseUrl) => {
-          return import.meta.env.DEV
-            ? `${baseUrl}/products?page=${page}`
-            : buildProdUrl(baseUrl, "products", page);
-        });
-        return result.data || [];
-      });
-
-      // Wait for all pages to be fetched
-      const allPagesData = await Promise.all(pagePromises);
-      
-      // Combine all products
-      allPagesData.forEach(pageData => {
-        allProducts.push(...pageData);
+      const pageResults = await Promise.all(
+        pageNumbers.map((page) =>
+          requestJsonWithFallback((baseUrl) => buildProductsPath(baseUrl, page, perPage))
+        )
+      );
+      pageResults.forEach((pageResult) => {
+        allProducts.push(...(pageResult.data || []));
       });
     }
 
@@ -580,8 +567,8 @@ export const fetchAllProducts = async (): Promise<ProductsResponse> => {
         current_page: 1,
         total: allProducts.length,
         from: 1,
-        to: allProducts.length
-      }
+        to: allProducts.length,
+      },
     };
   } catch (error) {
     console.error('Failed to fetch all products:', error);
