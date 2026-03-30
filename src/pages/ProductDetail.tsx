@@ -5,7 +5,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { fetchProductById } from "@/lib/api";
+import { fetchProductById, type Product } from "@/lib/api";
+
+type ProductVariation = Product["variations"][number];
+type ProductLocation = Product["locations"][number];
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,18 +22,18 @@ const ProductDetail = () => {
   });
 
   // Helper functions
-  const getProductPrice = (product: any) => {
+  const getProductPrice = (product?: Product) => {
     return product?.variations?.[0]?.default_sell_price || 0;
   };
 
-  const getProductStock = (product: any) => {
+  const getProductStock = (product?: Product) => {
     return product?.variations?.[0]?.total_stock || 0;
   };
 
-  const getProductImages = (product: any) => {
+  const getProductImages = (product?: Product) => {
     const images: string[] = [];
     if (product?.image_url) images.push(product.image_url);
-    product?.images?.forEach((img: any) => {
+    product?.images?.forEach((img) => {
       if (img.url && !images.includes(img.url)) images.push(img.url);
     });
     return images.length > 0 ? images : ['/placeholder.svg'];
@@ -192,7 +195,7 @@ const ProductDetail = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {variations.map((variation: any) => {
+                          {variations.map((variation: ProductVariation) => {
                             const variationStock = variation.total_stock || 0;
                             const variationName =
                               variation.name || variation.product_variation_name || "Default";
@@ -238,7 +241,7 @@ const ProductDetail = () => {
                     <span className="text-muted-foreground">Available in locations:</span>
                     <span className="text-foreground font-medium text-right">
                       {product.locations && product.locations.length > 0 
-                        ? product.locations.map((loc: any) => loc.name).join(", ")
+                        ? product.locations.map((loc: ProductLocation) => loc.name).join(", ")
                         : "N/A"}
                     </span>
                   </div>

@@ -11,6 +11,7 @@ import coordinator from "@/assets/team/Coordinator.png";
 import technician1 from "@/assets/team/Technician.png";
 import technician2 from "@/assets/team/Technician 2.png";
 import technician3 from "@/assets/team/Technicina 3.png";
+import traineeSE from "@/assets/team/Bingusala.png"
 
 
 interface TeamMember {
@@ -42,6 +43,7 @@ const teamGroups: TeamGroup[] = [
     members: [
       { role: "Senior Full Stack Developer", image: seniorDeveloper },
       { role: "Project Manager", image: projectManager },
+      { role: "Trainee Software Engineer", image: traineeSE },
     ],
   },
   {
@@ -59,6 +61,7 @@ const teamGroups: TeamGroup[] = [
       { role: "Technician", image: technician2 },
       { role: "Technician", image: technician3 },
     ],
+
   },
   // {
   //   department: "E Zone IT Academy",
@@ -90,6 +93,27 @@ const Team = () => {
         </motion.div>
 
         <div className="space-y-16 max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="max-w-2xl mx-auto"
+          >
+            <div className="rounded-2xl border border-primary/20 bg-card/60 backdrop-blur-sm p-6 md:p-8 text-center shadow-[0_0_40px_rgba(0,0,0,0.08)]">
+              <h3 className="text-xl md:text-2xl font-bold mb-2">Join Us</h3>
+              <p className="text-muted-foreground mb-4">
+                Are you a changemaker? Are you interested in making an impact?
+              </p>
+              <a
+                href="mailto:careers.ezonetechnologies@gmail.com"
+                className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground px-5 py-2.5 font-medium hover:opacity-90 transition-opacity"
+              >
+                careers.ezonetechnologies@gmail.com
+              </a>
+            </div>
+          </motion.div>
+
           {teamGroups.map((group, gi) => (
             <motion.div
               key={group.department}

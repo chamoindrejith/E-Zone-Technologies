@@ -159,7 +159,7 @@ interface Variation {
   sell_price_inc_tax: number;
   stock: StockItem[];
   total_stock: number;
-  images: any[];
+  images: ImageItem[];
 }
 
 interface Location {
@@ -194,8 +194,8 @@ export interface Product {
 
 export interface ProductsResponse {
   data: Product[];
-  links?: any;
-  meta?: any;
+  links?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
 }
 
 const buildProductsPath = (
