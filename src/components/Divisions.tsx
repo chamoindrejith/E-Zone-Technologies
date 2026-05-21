@@ -37,7 +37,7 @@ const divisions = [
     icon: Code,
     title: "E Zone IT Solutions",
     subtitle: "Smart Software for Smart Businesses",
-    path: "/it-solutions",
+    path: "https://ezoneitsolutions.com/",
     services: [
       "Custom Software Development",
       "POS Systems",
@@ -97,7 +97,14 @@ const Divisions = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: i * 0.1 }}
               className="group p-8 rounded-2xl bg-card border border-glow hover:shadow-glow transition-all duration-500 cursor-pointer"
-              onClick={() => navigate(div.path)}
+              onClick={() => {
+                if (div.path.startsWith("http")) {
+                  window.location.href = div.path;
+                  return;
+                }
+
+                navigate(div.path);
+              }}
             >
               <div className="w-14 h-14 rounded-xl bg-gradient-brand flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <div.icon size={24} className="text-primary-foreground" />

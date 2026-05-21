@@ -41,7 +41,7 @@ const Technologies = () => {
   const [isSubCategoryOpen, setIsSubCategoryOpen] = useState(false);
   const [isBrandOpen, setIsBrandOpen] = useState(false);
   const [isStockOpen, setIsStockOpen] = useState(false);
-  const [selectedStockFilter, setSelectedStockFilter] = useState<StockFilterValue>("all");
+  const [selectedStockFilter, setSelectedStockFilter] = useState<StockFilterValue>("in");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const headingRef = useRef<HTMLDivElement | null>(null);

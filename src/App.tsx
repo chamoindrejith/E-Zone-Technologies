@@ -10,6 +10,7 @@ import ProductDetail from "./pages/ProductDetail";
 import RepairCenter from "./pages/RepairCenter";
 import ITSolutions from "./pages/ITSolutions";
 import ITAcademy from "./pages/ITAcademy";
+import InstallmentPlans from "./pages/InstallmentPlans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/repair-center" element={<RepairCenter />} />
           <Route path="/it-solutions" element={<ITSolutions />} />
           <Route path="/it-academy" element={<ITAcademy />} />
+          <Route path="/installment-plans" element={<InstallmentPlans />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

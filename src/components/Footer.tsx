@@ -3,7 +3,6 @@ import logo from "@/assets/logo.jpeg";
 const socialLinks = [
   { name: "Facebook", url: "https://www.facebook.com/ezoneanuradhapura" },
   { name: "Instagram", url: "https://www.instagram.com/ezonetech.lk?igsh=MW9zcmdzcWNnemRtaQ==" },
-  { name: "LinkedIn", url: null },
   {name: "TikTok", url: "https://www.tiktok.com/@ezone_technology?_r=1&_t=ZS-94SMvyoQ2vX"}
 ];
 
@@ -43,6 +42,14 @@ const Footer = () => {
                 </button>
               )
             )}
+            <a
+              href="/Policy%20and%20Procedures%20Manual.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Company Policy
+            </a>
           </div>
         </div>
       </div>

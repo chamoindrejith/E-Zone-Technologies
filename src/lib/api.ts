@@ -4,6 +4,29 @@
 const API_KEY = "f98fc3f1a2b27a1c71ec0d1332a9edcf566ed3aa52a19b985e03a5c5028130ed";
 const PROD_PROXY_BASE_URL = (import.meta.env.VITE_PRODUCTS_PROXY_BASE_URL as string | undefined)?.trim();
 const API_BASE_URL = import.meta.env.DEV ? "/api" : (PROD_PROXY_BASE_URL || "/api/products.php");
+const STATIC_PRODUCTS_SNAPSHOT_URL = "/products-data.json";
+
+let staticProductsSnapshotPromise: Promise<ProductsResponse> | null = null;
+
+const normalizeProductsResponse = (payload: any): ProductsResponse => ({
+  data: Array.isArray(payload?.data) ? payload.data : [],
+  links: payload?.links,
+  meta: payload?.pagination || payload?.meta,
+});
+
+const loadStaticProductsSnapshot = async (): Promise<ProductsResponse> => {
+  if (!staticProductsSnapshotPromise) {
+    staticProductsSnapshotPromise = fetch(STATIC_PRODUCTS_SNAPSHOT_URL).then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Static products snapshot not found: ${response.status} ${response.statusText}`);
+      }
+
+      return normalizeProductsResponse(await response.json());
+    });
+  }
+
+  return staticProductsSnapshotPromise;
+};
 
 const readJsonResponse = async (response: Response) => {
   const raw = await response.text();
@@ -101,6 +124,47 @@ const requestJsonWithFallback = async (buildPath: (baseUrl: string) => string) =
   throw lastError instanceof Error
     ? lastError
     : new Error("Unable to fetch products from configured proxy endpoints.");
+};
+
+const loadProductsData = async (buildPath: (baseUrl: string) => string) => {
+  if (import.meta.env.DEV) {
+    return requestJsonWithFallback(buildPath);
+  }
+
+  try {
+    return await loadStaticProductsSnapshot();
+  } catch (snapshotError) {
+    console.warn("Static products snapshot unavailable, falling back to proxy endpoints.", snapshotError);
+    return requestJsonWithFallback(buildPath);
+  }
+};
+
+const filterProductsByCriteria = (
+  products: Product[],
+  categoryId?: number,
+  subCategoryId?: number,
+  brandId?: number
+) => {
+  return products.filter((product) => {
+    if (typeof categoryId === "number" && product.category?.id !== categoryId) {
+      return false;
+    }
+
+    if (typeof subCategoryId === "number" && product.sub_category?.id !== subCategoryId) {
+      return false;
+    }
+
+    if (typeof brandId === "number" && product.brand?.id !== brandId) {
+      return false;
+    }
+
+    return true;
+  });
+};
+
+const paginateProducts = (products: Product[], page: number, perPage: number) => {
+  const start = Math.max(0, (page - 1) * perPage);
+  return products.slice(start, start + perPage);
 };
 
 interface ImageItem {
@@ -260,6 +324,33 @@ export const fetchProducts = async (
   brandId?: number
 ): Promise<ProductsResponse> => {
   try {
+    if (!import.meta.env.DEV) {
+      const snapshot = await loadProductsData((baseUrl) =>
+        buildProductsPath(baseUrl, page, perPage, categoryId, subCategoryId, brandId)
+      );
+
+      const filteredProducts = filterProductsByCriteria(
+        snapshot.data || [],
+        categoryId,
+        subCategoryId,
+        brandId
+      );
+      const pageSize = perPage ?? 20;
+      const pagedProducts = paginateProducts(filteredProducts, page, pageSize);
+
+      return {
+        data: pagedProducts,
+        meta: {
+          current_page: page,
+          per_page: pageSize,
+          last_page: Math.max(1, Math.ceil(filteredProducts.length / pageSize)),
+          total: filteredProducts.length,
+          from: filteredProducts.length === 0 ? 0 : (page - 1) * pageSize + 1,
+          to: Math.min(page * pageSize, filteredProducts.length),
+        },
+      };
+    }
+
     const result = await requestJsonWithFallback((baseUrl) =>
       buildProductsPath(baseUrl, page, perPage, categoryId, subCategoryId, brandId)
     );
@@ -282,6 +373,11 @@ export const fetchProducts = async (
  * Useful when backend sub-category filtering is not reliable.
  */
 export const fetchAllProductsByCategory = async (categoryId: number): Promise<Product[]> => {
+  if (!import.meta.env.DEV) {
+    const snapshot = await loadProductsData((baseUrl) => buildProductsPath(baseUrl, 1, 1000, categoryId));
+    return filterProductsByCriteria(snapshot.data || [], categoryId);
+  }
+
   const perPage = 1000;
   const firstPage = await requestJsonWithFallback((baseUrl) =>
     buildProductsPath(baseUrl, 1, perPage, categoryId)
@@ -313,9 +409,8 @@ export const fetchAllProductsByCategory = async (categoryId: number): Promise<Pr
  */
 export const fetchCategories = async (): Promise<ProductCategory[]> => {
   try {
-    // Fetch first page with very high per_page to get many products at once
-    const firstPageResult = await requestJsonWithFallback((baseUrl) =>
-      buildProductsPath(baseUrl, 1, 1000) // Request 1000 items per page
+    const firstPageResult = await loadProductsData((baseUrl) =>
+      buildProductsPath(baseUrl, 1, 1000)
     );
 
     const categoriesMap = new Map<number, ProductCategory>();
@@ -388,9 +483,8 @@ export const fetchCategories = async (): Promise<ProductCategory[]> => {
  */
 export const fetchSubCategories = async (): Promise<ProductSubCategory[]> => {
   try {
-    // Fetch first page with very high per_page to get many products at once
-    const firstPageResult = await requestJsonWithFallback((baseUrl) =>
-      buildProductsPath(baseUrl, 1, 1000) // Request 1000 items per page
+    const firstPageResult = await loadProductsData((baseUrl) =>
+      buildProductsPath(baseUrl, 1, 1000)
     );
 
     const subCategoriesMap = new Map<number, ProductSubCategory>();
@@ -465,9 +559,8 @@ export const fetchSubCategories = async (): Promise<ProductSubCategory[]> => {
  */
 export const fetchBrands = async (): Promise<ProductBrand[]> => {
   try {
-    // Fetch first page with very high per_page to get many products at once
-    const firstPageResult = await requestJsonWithFallback((baseUrl) =>
-      buildProductsPath(baseUrl, 1, 1000) // Request 1000 items per page
+    const firstPageResult = await loadProductsData((baseUrl) =>
+      buildProductsPath(baseUrl, 1, 1000)
     );
 
     const brandsMap = new Map<number, ProductBrand>();
@@ -537,6 +630,15 @@ export const fetchBrands = async (): Promise<ProductBrand[]> => {
  */
 export const fetchAllProducts = async (): Promise<ProductsResponse> => {
   try {
+    if (!import.meta.env.DEV) {
+      const snapshot = await loadProductsData((baseUrl) => buildProductsPath(baseUrl, 1, 1000));
+      return {
+        data: snapshot.data || [],
+        meta: snapshot.meta,
+        links: snapshot.links,
+      };
+    }
+
     const perPage = 1000;
     // First, fetch the first page to get pagination metadata
     const firstPageResult = await requestJsonWithFallback((baseUrl) =>
@@ -583,6 +685,17 @@ export const fetchAllProducts = async (): Promise<ProductsResponse> => {
  */
 export const fetchProductById = async (id: string): Promise<Product> => {
   try {
+    if (!import.meta.env.DEV) {
+      const snapshot = await loadProductsData((baseUrl) => buildProductsPath(baseUrl, 1, 1000));
+      const product = (snapshot.data || []).find((item) => String(item.id) === String(id));
+
+      if (!product) {
+        throw new Error(`Product ${id} not found in the local products snapshot.`);
+      }
+
+      return product;
+    }
+
     const result = await requestJsonWithFallback((baseUrl) => {
       return import.meta.env.DEV
         ? `${baseUrl}/products/${id}`

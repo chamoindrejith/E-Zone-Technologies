@@ -5,12 +5,12 @@ import managerBusinessDevelopment from "@/assets/team/Business Development Manag
 import traineeAccountant from "@/assets/team/Trainee Accountant.png";
 import seniorDeveloper from "@/assets/team/Developer.png";
 import projectManager from "@/assets/team/Project Manager.png";
-import salesExec1 from "@/assets/team/Sales Executive 2.png";
 import salesExec2 from "@/assets/team/Sales Executive.png";
+import salesExec3 from "@/assets/team/Sales Executive 3.png";
 import coordinator from "@/assets/team/Coordinator.png";
 import technician1 from "@/assets/team/Technician.png";
 import technician2 from "@/assets/team/Technician 2.png";
-import technician3 from "@/assets/team/Technicina 3.png";
+import technician3 from "@/assets/team/Technician 3.png";
 import traineeSE from "@/assets/team/Bingusala.png"
 
 
@@ -49,8 +49,8 @@ const teamGroups: TeamGroup[] = [
   {
     department: "E Zone Technologies",
     members: [
-      { role: "Sales Executive", image: salesExec1 },
       { role: "Sales Executive", image: salesExec2 },
+      { role: "Sales Executive", image: salesExec3 },
     ],
   },
   {

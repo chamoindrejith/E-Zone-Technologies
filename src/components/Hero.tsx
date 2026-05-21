@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Monitor, Wrench, Code, GraduationCap, ArrowRight } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Monitor, Wrench, Code, GraduationCap, ArrowRight, ShoppingCart, Laptop } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 import redragonLogo from "@/assets/redragon-logo.png";
 
 const divisions = [
   { label: "E Zone Technologies", icon: Monitor, path: "/technologies", color: "from-primary to-accent" },
   { label: "E Zone Repair Center", icon: Wrench, path: "/repair-center", color: "from-primary to-accent" },
-  { label: "E Zone IT Solutions", icon: Code, path: "/it-solutions", color: "from-primary to-accent" },
+  { label: "E Zone IT Solutions", icon: Code, path: "https://ezoneitsolutions.com/", color: "from-primary to-accent" },
   { label: "E Zone IT Academy", icon: GraduationCap, path: "/it-academy", color: "from-primary to-accent" },
 ];
 
@@ -78,6 +78,7 @@ const Hero = () => {
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-[100px] animate-pulse-glow" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-[120px] animate-pulse-glow" />
 
+       
       <div className="container mx-auto px-6 relative z-10 pt-24">
         <div className="max-w-5xl">
           <motion.div
@@ -85,6 +86,47 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
+             <Link to="/installment-plans" className="mb-5 block w-full max-w-6xl">
+                 <motion.div
+                 className="group relative overflow-hidden rounded-full border-2 border-amber-200/90 bg-gradient-to-r from-amber-400/10 via-yellow-400/10 to-amber-400/10 px-4 py-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_40px_rgba(251,191,36,0.4),0_0_80px_rgba(251,191,36,0.2)] sm:px-5 lg:px-6"
+                 animate={{
+                   scale: [1, 1.02, 1],
+                   boxShadow: [
+                     "0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.15)",
+                     "0 0 40px rgba(251, 191, 36, 0.5), 0 0 80px rgba(251, 191, 36, 0.25)",
+                     "0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.15)",
+                   ],
+                 }}
+                 transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+               >
+                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(251,191,36,0.12),transparent_70%)]" />
+                 <div className="pointer-events-none absolute inset-y-0 left-16 w-40 -skew-x-[18deg] bg-gradient-to-r from-transparent via-amber-300/25 to-transparent blur-sm" />
+                   <div className="relative flex flex-nowrap items-center gap-3 sm:gap-4 lg:gap-5">
+                    <div className="flex items-center gap-3 shrink-0">
+                      
+                      <motion.div
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-amber-300/60 bg-amber-400/20 text-amber-600 shadow-[0_0_20px_rgba(251,191,36,0.15)]"
+                        animate={{ scale: [1, 1.12, 1] }}
+                        transition={{ duration: 1.3, repeat: Infinity, ease: "easeInOut", delay: 0.15 }}
+                      >
+                        <Laptop size={24} strokeWidth={2.4} />
+                      </motion.div>
+                   </div>
+                    <motion.p
+                      className="min-w-0 flex-1 text-[clamp(0.95rem,1.7vw,2.15rem)] font-extrabold leading-none tracking-wide text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] whitespace-nowrap"
+                      animate={{ opacity: [0.85, 1, 0.85], scale: [1, 1.005, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <span className="ranee-bold text-yellow-300 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">අරන් යන්න පස්සේ ගෙවන්න</span>
+                      <span className="text-amber-300/80 mx-2">-</span>
+                      <span className="text-amber-50 font-extrabold bg-gradient-to-r from-amber-200 to-amber-300 bg-clip-text text-transparent">E-Zone</span>
+                      <span className="text-amber-300/80 mx-2"> </span>
+                      <span className="ranee-bold text-yellow-300 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]">එකෙන් විතරමයි!</span>
+                    </motion.p>
+                 </div>
+              </motion.div>
+            </Link>
+
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-glow bg-secondary/50 mb-8">
               <span className="w-2 h-2 rounded-full bg-gradient-brand animate-pulse-glow" />
               <span className="text-xs font-mono text-muted-foreground tracking-wider uppercase">
@@ -92,6 +134,8 @@ const Hero = () => {
               </span>
             </div>
           </motion.div>
+
+         
 
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
@@ -136,23 +180,32 @@ const Hero = () => {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"
           >
-            {divisions.map((div, i) => (
-              <motion.button
-                key={div.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: 0.6 + i * 0.1 }}
-                onClick={() => navigate(div.path)}
-                className="group flex flex-col items-center gap-3 p-5 rounded-xl bg-card border border-glow hover:shadow-glow hover:border-primary/50 transition-all duration-300"
-              >
-                <div className="w-12 h-12 rounded-lg bg-gradient-brand flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <div.icon size={22} className="text-primary-foreground" />
-                </div>
-                <span className="text-sm font-semibold text-foreground text-center leading-tight">
-                  {div.label}
-                </span>
-              </motion.button>
-            ))}
+{divisions.map((div, i) => {
+  const isExternal = div.path.startsWith("http");
+  return (
+    <motion.button
+      key={div.label}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4, delay: 0.6 + i * 0.1 }}
+      onClick={() => {
+        if (isExternal) {
+          window.open(div.path, "_blank", "noopener,noreferrer");
+        } else {
+          navigate(div.path);
+        }
+      }}
+      className="group flex flex-col items-center gap-3 p-5 rounded-xl bg-card border border-glow hover:shadow-glow hover:border-primary/50 transition-all duration-300"
+    >
+      <div className="w-12 h-12 rounded-lg bg-gradient-brand flex items-center justify-center group-hover:scale-110 transition-transform">
+        <div.icon size={22} className="text-primary-foreground" />
+      </div>
+      <span className="text-sm font-semibold text-foreground text-center leading-tight">
+        {div.label}
+      </span>
+    </motion.button>
+  );
+})}
           </motion.div>
 
           {/* CTA */}
